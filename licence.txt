@@ -1,0 +1,32 @@
+licence
+=======
+
+source codes
+------------
+
+web/index.html, web/main.js and web/websocket.js
+
+    MIT Licensed
+    Copyright daishi_hmr
+
+tmlib.js
+
+    MIT Licensed
+    Copyright phi
+    http://github.com/phi1618/tmlib.js
+
+sounds
+------
+
+web/nc790.mp3
+    http://commons.nicovideo.jp/
+
+web/*.wav
+    license free
+    http://osabisi.sakura.ne.jp/m2/
+
+image
+-----
+
+web/texture0.png
+    license free

@@ -1,0 +1,20 @@
+java -cp our-beats-0.0.1-SNAPSHOT.jar:\
+actorom-0.5.dev7.jar:\
+commons-collections-3.2.1.jar:\
+commons-lang-2.4.jar:\
+javax.servlet-3.0.0.v201112011016.jar:\
+jcip-annotations-1.0.jar:\
+jetty-continuation-8.1.8.v20121106.jar:\
+jetty-http-8.1.8.v20121106.jar:\
+jetty-io-8.1.8.v20121106.jar:\
+jetty-security-8.1.8.v20121106.jar:\
+jetty-server-8.1.8.v20121106.jar:\
+jetty-servlet-8.1.8.v20121106.jar:\
+jetty-util-8.1.8.v20121106.jar:\
+jetty-websocket-8.1.8.v20121106.jar:\
+jsonic-1.3.0.jar:\
+logback-classic-1.0.0.jar:\
+logback-core-1.0.0.jar:\
+netty-3.2.4.Final.jar:\
+slf4j-api-1.6.0.jar\
+ app.Main
