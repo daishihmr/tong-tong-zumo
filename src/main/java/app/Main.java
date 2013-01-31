@@ -13,7 +13,6 @@ public class Main {
             }
         }
 
-        MainServer mainServer = new MainServer();
-        mainServer.run(port);
+        MainServer.run(port);
     }
 }

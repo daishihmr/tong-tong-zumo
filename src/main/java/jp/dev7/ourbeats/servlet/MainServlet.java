@@ -23,28 +23,26 @@ import com.googlecode.actorom.support.ThreadingPolicies;
 @SuppressWarnings("serial")
 public class MainServlet extends WebSocketServlet {
 
-    private Topology topology = new LocalTopology("main",
-            ThreadingPolicies.newOSThreadingPolicy(20));
-    private MatcherActor matcher;
+    private Topology topology;
+    private Address matcherAddress;
     private Address killerAddress;
 
     @Override
     public void init() throws ServletException {
         super.init();
-        matcher = new MatcherActor();
-        KillerActor killer = new KillerActor();
-        final Address matcherAddress = topology.spawnActor("matcher", matcher);
-        killerAddress = topology.spawnActor("killer", killer);
+
+        topology = new LocalTopology("main", ThreadingPolicies.newOSThreadingPolicy(20));
+        killerAddress = topology.spawnActor("killer", new KillerActor());
+        matcherAddress = topology.spawnActor("matcher", new MatcherActor(killerAddress));
+
         new Thread() {
             @Override
             public void run() {
                 while (true) {
                     try {
                         sleep(1000);
-                        on(topology).send(new RequestIntroduceMessage()).to(
-                                matcherAddress);
+                        on(topology).send(new RequestIntroduceMessage()).to(matcherAddress);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
                     }
                 }
             }
@@ -52,13 +50,14 @@ public class MainServlet extends WebSocketServlet {
     }
 
     @Override
-    public WebSocket doWebSocketConnect(HttpServletRequest request,
-            String protocol) {
-        NodeActor node = new NodeActor(matcher, killerAddress);
-        synchronized (topology) {
-            topology.spawnActor(UUID.randomUUID().toString(), node);
-        }
+    public WebSocket doWebSocketConnect(HttpServletRequest request, String protocol) {
+        final NodeActor node = new NodeActor(matcherAddress, killerAddress);
+        topology.spawnActor(getKey(), node);
         return node;
+    }
+
+    private String getKey() {
+        return UUID.randomUUID().toString();
     }
 
 }

@@ -17,17 +17,14 @@ import org.eclipse.jetty.servlet.ServletHolder;
 
 public class MainServer {
 
-    public MainServer() {
-    }
+    public static void run(int port) throws Exception {
 
-    public void run(int port) throws Exception {
-        HandlerList handlerList = new HandlerList();
+        final HandlerList handlerList = new HandlerList();
 
-        ResourceHandler resourceHandler = new ResourceHandler() {
+        final ResourceHandler resourceHandler = new ResourceHandler() {
             @Override
-            public void handle(String target, Request baseRequest,
-                    HttpServletRequest request, HttpServletResponse response)
-                    throws IOException, ServletException {
+            public void handle(String target, Request baseRequest, HttpServletRequest request,
+                    HttpServletResponse response) throws IOException, ServletException {
                 super.handle(target, baseRequest, request, response);
                 response.addHeader("Cache-Control", "no-cache");
                 response.addHeader("Pragma", "no-cache");
@@ -37,16 +34,15 @@ public class MainServer {
         resourceHandler.setResourceBase("./web");
         handlerList.addHandler(resourceHandler);
 
-        MainServlet waitingServlet = new MainServlet();
+        final MainServlet waitingServlet = new MainServlet();
         ServletHandler servletHandler = new ServletHandler();
-        servletHandler.addServletWithMapping(new ServletHolder(waitingServlet),
-                "/ws/init");
+        servletHandler.addServletWithMapping(new ServletHolder(waitingServlet), "/ws/init");
         handlerList.addHandler(servletHandler);
 
-        Server server = new Server(port);
+        final Server server = new Server(port);
         server.setHandler(handlerList);
-
         server.start();
+
     }
 
 }

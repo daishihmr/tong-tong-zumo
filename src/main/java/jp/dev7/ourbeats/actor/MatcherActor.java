@@ -6,7 +6,7 @@ import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import jp.dev7.ourbeats.actor.NodeActor.Status;
-import jp.dev7.ourbeats.message.InitMessage;
+import jp.dev7.ourbeats.message.HelloMessage;
 import jp.dev7.ourbeats.message.RequestIntroduceMessage;
 
 import com.googlecode.actorom.Address;
@@ -23,20 +23,22 @@ public class MatcherActor {
     @AddressInstance
     private Address address;
 
+    private Address killer;
+
     private final List<NodeActor> waitingNodes = new CopyOnWriteArrayList<NodeActor>();
 
-    public Address getAddress() {
-        return address;
+    public MatcherActor(Address killer) {
+        this.killer = killer;
     }
 
-    @OnMessage(type = InitMessage.class)
-    public void onHelloMessage(InitMessage message) {
+    @OnMessage(type = HelloMessage.class)
+    public void onHello(HelloMessage message) {
         waitingNodes.add(message.getNode());
     }
 
     @OnMessage(type = RequestIntroduceMessage.class)
     public void onRequestIntroduce(RequestIntroduceMessage message) {
-        List<NodeActor> removed = new ArrayList<NodeActor>();
+        final List<NodeActor> removed = new ArrayList<NodeActor>();
         for (NodeActor node : waitingNodes) {
             if (node.getStatus() == Status.Disconnected) {
                 removed.add(node);
@@ -47,8 +49,11 @@ public class MatcherActor {
         if (waitingNodes.size() < 2) {
             return;
         }
-        topology.spawnActor(UUID.randomUUID().toString(), new RefereeActor(
-                waitingNodes.remove(0), waitingNodes.remove(0)));
+        topology.spawnActor(genKey(), new RefereeActor(killer, waitingNodes.remove(0), waitingNodes.remove(0)));
+    }
+
+    private String genKey() {
+        return UUID.randomUUID().toString();
     }
 
 }

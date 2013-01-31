@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import jp.dev7.ourbeats.message.ConnectedMessage;
-import jp.dev7.ourbeats.message.InitMessage;
+import jp.dev7.ourbeats.message.HelloMessage;
 import jp.dev7.ourbeats.message.KillMeMessage;
 import net.arnx.jsonic.JSON;
 import net.arnx.jsonic.JSONException;
@@ -41,13 +41,13 @@ public class NodeActor implements WebSocket.OnTextMessage {
     private Status status = Status.Wait;
     private Connection connection;
 
-    private MatcherActor matcher;
-    private RefereeActor referee;
-    private NodeActor partner;
+    private Address matcher;
     private Address killer;
 
-    public NodeActor(MatcherActor parent, Address killerAddress) {
-        this.matcher = parent;
+    private RefereeActor referee;
+
+    public NodeActor(Address matcherAddress, Address killerAddress) {
+        this.matcher = matcherAddress;
         this.killer = killerAddress;
     }
 
@@ -58,8 +58,7 @@ public class NodeActor implements WebSocket.OnTextMessage {
     @Override
     public void onOpen(Connection connection) {
         this.connection = connection;
-        on(topology).send(new InitMessage(address, this)).to(
-                matcher.getAddress());
+        on(topology).send(new HelloMessage(address, this)).to(matcher);
     }
 
     @Override
@@ -67,6 +66,7 @@ public class NodeActor implements WebSocket.OnTextMessage {
         on(topology).send(new KillMeMessage(address)).to(killer);
         if (referee != null) {
             referee.bye();
+            referee = null;
         }
         status = Status.Disconnected;
     }
@@ -82,12 +82,13 @@ public class NodeActor implements WebSocket.OnTextMessage {
     @OnMessage(type = ConnectedMessage.class)
     public void onConnected(ConnectedMessage message) throws IOException {
         this.referee = message.getReferee();
-        this.partner = message.getPartner();
-        this.status = Status.Connecting;
+
         final Map<String, Object> map = new HashMap<String, Object>();
         map.put("message", "connected");
         map.put("youare", message.getNumber());
         connection.sendMessage(JSON.encode(map));
+
+        this.status = Status.Connecting;
     }
 
     @Override
@@ -98,14 +99,16 @@ public class NodeActor implements WebSocket.OnTextMessage {
                 sendTextMessage("waiting");
                 break;
             case Connecting:
-                this.referee.receive(this, data);
+                referee.receive(this, data);
                 break;
             case Left:
                 sendTextMessage("left");
                 break;
+            case Disconnected:
+                // no op
+                break;
             }
         } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
@@ -113,8 +116,7 @@ public class NodeActor implements WebSocket.OnTextMessage {
         connection.sendMessage(data);
     }
 
-    private void sendTextMessage(String message) throws JSONException,
-            IOException {
+    private void sendTextMessage(String message) throws JSONException, IOException {
         final Map<String, Object> map = new HashMap<String, Object>();
         map.put("message", message);
         connection.sendMessage(JSON.encode(map));

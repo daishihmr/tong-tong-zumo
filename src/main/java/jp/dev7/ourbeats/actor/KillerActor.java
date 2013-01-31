@@ -15,10 +15,8 @@ public class KillerActor {
     private Topology topology;
 
     @OnMessage(type = KillMeMessage.class)
-    public void onKillMeMessage(KillMeMessage message) {
-        on(topology).send(
-                new ExitActorMessage(message.getFrom(), ExitReason.KILL)).to(
-                message.getFrom());
+    public void onKillMe(KillMeMessage message) {
+        on(topology).send(new ExitActorMessage(message.getFrom(), ExitReason.KILL)).to(message.getFrom());
     }
 
 }
